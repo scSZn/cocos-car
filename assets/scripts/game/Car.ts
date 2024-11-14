@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Quat, Vec3 } from "cc";
+import { _decorator, Component, Node, ParticleSystemComponent, ParticleUtils, Quat, Vec3 } from "cc";
 import { MoveType, RoadPoint, RoadPointType } from "./RoadPoint";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
 const { ccclass, property } = _decorator;
@@ -34,17 +34,29 @@ export class Car extends Component {
   // 是否在等待乘客中
   private waitingPassenger: boolean = false;
 
+  private accelerateSpeed: number = 0;
+
+  private speed: number = 0;
+
+  private cameraPosition: Vec3 = new Vec3();
+
   @property({
-    type: Number,
-    displayName: "加速度",
+    type: Node,
+    displayName: "尾气特效",
   })
-  private acceleratedSpeed: number = 0.5;
+  private gasEffect: Node = null;
+
+  @property({
+    type: Node,
+    displayName: "金币特效",
+  })
+  private coinEffect: Node = null;
 
   @property({
     type: Number,
-    displayName: "当前速度",
+    displayName: "最大加速度",
   })
-  private speed: number = 0;
+  private maxAcceleratedSpeed: number = 0;
 
   @property({
     type: Number,
@@ -65,31 +77,25 @@ export class Car extends Component {
   start() {}
 
   update(deltaTime: number) {
-    if (this.waitingPassenger) {
+    if (this.waitingPassenger || !this.isRunning) {
       // 如果在等待乘客，则不能移动
       return;
     }
 
-    if (this.isRunning) {
-      // 计算速度
-      this.speed += this.acceleratedSpeed * deltaTime;
-      if (this.speed > this.maxSpeed) {
-        this.speed = this.maxSpeed;
-      }
-      console.log("speed", this.speed);
-      // 移动小车
-      // 1. 获取移动的方向
-      switch (this.currentRoadPoint.moveType) {
-        case MoveType.Line:
-          this.moveLine(deltaTime);
-          break;
-        case MoveType.Turn:
-          this.moveTurn(deltaTime);
-          break;
-      }
-      // 2. 判断是否到达下一个站点
-      this.isArravaling();
+    this.updateSpeed(deltaTime);
+    this.showEffect();
+    // 移动小车
+    // 1. 获取移动的方向
+    switch (this.currentRoadPoint.moveType) {
+      case MoveType.Line:
+        this.moveLine(deltaTime);
+        break;
+      case MoveType.Turn:
+        this.moveTurn(deltaTime);
+        break;
     }
+    // 2. 判断是否到达下一个站点
+    this.isArravaling();
   }
 
   public setRoadPoint(roadPoint: RoadPoint) {
@@ -129,6 +135,11 @@ export class Car extends Component {
     // 3. 在这里处理小车接送客逻辑
     if (roadPoint.type == RoadPointType.Greeting || roadPoint.type == RoadPointType.Goodbye) {
       this.waitingPassenger = true;
+      this.speed = 0;
+      if (roadPoint.type == RoadPointType.Goodbye) {
+        // 送用户到终点之后，播放金币特效
+        this.coinEffect?.getComponent(ParticleSystemComponent)?.play();
+      }
       EventHandler.on(CustomEventType.PassengerMoveEnd, this.onPassengerMoveEnd, this);
       EventHandler.emit(CustomEventType.PassengerMoveStart, roadPoint);
     }
@@ -220,22 +231,48 @@ export class Car extends Component {
 
   // 小车运行的处理函数
   private carRunning() {
+    console.log("小车运行");
     this.isRunning = true;
+    this.accelerateSpeed = this.maxAcceleratedSpeed;
   }
 
   // 停止小车的处理函数
   private carStop() {
-    this.isRunning = false;
+    this.accelerateSpeed = -this.maxAcceleratedSpeed;
+  }
+
+  // 更新小车速度的函数
+  private updateSpeed(deltaTime: number) {
+    this.speed += this.accelerateSpeed * deltaTime;
+    console.log(this.speed, this.accelerateSpeed, deltaTime);
+    if (this.speed > this.maxSpeed) {
+      this.speed = this.maxSpeed;
+    }
+    if (this.speed < 0) {
+      this.speed = 0;
+    }
   }
 
   public setMainCar(isMainCar: boolean) {
     this.isMainCar = isMainCar;
   }
 
-  private onPassengerMoveEnd() {
-    // 1. 移除等待乘客的状态
+  private onPassengerMoveEnd(roadPoint: RoadPoint) {
+    // 1. 播放金币特效
+    this.coinEffect?.getComponent(ParticleSystemComponent)?.stop();
+    // 2. 移除等待乘客的状态
     this.waitingPassenger = false;
-    // 2. 移除监听的事件
+    // 3. 移除监听的事件
     EventHandler.off(CustomEventType.PassengerMoveEnd, this.onPassengerMoveEnd, this);
+  }
+
+  private showEffect() {
+    if (this.gasEffect) {
+      if (this.speed > 0) {
+        ParticleUtils.play(this.gasEffect);
+      } else {
+        ParticleUtils.stop(this.gasEffect);
+      }
+    }
   }
 }

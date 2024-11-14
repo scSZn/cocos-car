@@ -122,7 +122,7 @@ export class PassengerManager extends Component {
         this.currentPassenger.getComponent(SkeletalAnimation).stop();
         this.currentPassenger = null;
         // 发送事件
-        EventHandler.emit(CustomEventType.PassengerMoveEnd);
+        EventHandler.emit(CustomEventType.PassengerMoveEnd, roadPoint);
       })
       .start(); // 调用 start 方法，开启缓动
   }
