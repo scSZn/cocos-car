@@ -84,7 +84,7 @@ export class GameCtrl extends Component {
 
   // 检查是否可以开始游戏
   private checkReady(): void {
-    console.log("checkReady", this.currentCarNode !== null, this.currentMapNode !== null, this.currentCarNode, this.currentMapNode);
+    // console.log("checkReady", this.currentCarNode !== null, this.currentMapNode !== null, this.currentCarNode, this.currentMapNode);
     this.ready = this.currentMapNode !== null && this.currentCarNode !== null;
     if (this.ready) {
       EventHandler.emit(CustomEventType.GameReady, this.currentMapNode, this.currentCarNode);
