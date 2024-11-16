@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, ParticleSystemComponent, ParticleUtils, Quat, Vec3 } from "cc";
 import { MoveType, RoadPoint, RoadPointType } from "./RoadPoint";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
+import { AudioManager, AudioName } from "./AudioManager";
 const { ccclass, property } = _decorator;
 
 enum MoveLineDirection {
@@ -137,7 +138,9 @@ export class Car extends Component {
       this.waitingPassenger = true;
       this.speed = 0;
       if (roadPoint.type == RoadPointType.Goodbye) {
-        // 送用户到终点之后，播放金币特效
+        // 送用户到终点之后，播放金币特效和金币音效
+        AudioManager.inst.playOneShot(AudioName.GetMoney);
+        AudioManager.inst.playOneShot(AudioName.InCar);
         this.coinEffect?.getComponent(ParticleSystemComponent)?.play();
       }
       EventHandler.on(CustomEventType.PassengerMoveEnd, this.onPassengerMoveEnd, this);
@@ -231,14 +234,15 @@ export class Car extends Component {
 
   // 小车运行的处理函数
   private carRunning() {
-    console.log("小车运行");
     this.isRunning = true;
     this.accelerateSpeed = this.maxAcceleratedSpeed;
+    AudioManager.inst.playOneShot(AudioName.Start);
   }
 
   // 停止小车的处理函数
   private carStop() {
     this.accelerateSpeed = -this.maxAcceleratedSpeed;
+    AudioManager.inst.playOneShot(AudioName.Stop);
   }
 
   // 更新小车速度的函数
@@ -260,6 +264,9 @@ export class Car extends Component {
   private onPassengerMoveEnd(roadPoint: RoadPoint) {
     // 1. 播放金币特效
     this.coinEffect?.getComponent(ParticleSystemComponent)?.stop();
+    if (roadPoint.type == RoadPointType.Greeting) {
+      AudioManager.inst.playOneShot(AudioName.InCar); // 播放音效
+    }
     // 2. 移除等待乘客的状态
     this.waitingPassenger = false;
     // 3. 移除监听的事件

@@ -3,6 +3,7 @@ import { MapManager } from "./MapManager";
 import { CarManager } from "./CarManager";
 import { ResourceUtil } from "../data/ResourceUtil";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
+import { AudioManager, AudioName } from "./AudioManager";
 
 const { ccclass, property } = _decorator;
 
@@ -48,6 +49,7 @@ export class GameCtrl extends Component {
 
     this.mapManager.initGameMap(this.currentGameMap);
     this.carManager.initMainCar(this.currentCar);
+    AudioManager.inst.play(AudioName.Background); // 播放背景音乐
   }
 
   /**
