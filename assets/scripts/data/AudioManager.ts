@@ -1,5 +1,5 @@
 import { _decorator, AudioClip, AudioSource, Component, Node, director } from "cc";
-import { ResourceUtil } from "../data/ResourceUtil";
+import { ResourceUtil } from "./ResourceUtil";
 const { ccclass, property } = _decorator;
 
 export enum AudioName {

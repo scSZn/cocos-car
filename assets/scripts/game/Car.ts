@@ -1,7 +1,8 @@
-import { _decorator, Component, Node, ParticleSystemComponent, ParticleUtils, Quat, Vec3 } from "cc";
+import { _decorator, Component, Node, ParticleSystemComponent, ParticleUtils, quat, Quat, Vec3 } from "cc";
 import { MoveType, RoadPoint, RoadPointType } from "./RoadPoint";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
-import { AudioManager, AudioName } from "./AudioManager";
+import { AudioManager, AudioName } from "../data/AudioManager";
+import { PoolManager } from "../data/PoolManager";
 const { ccclass, property } = _decorator;
 
 enum MoveLineDirection {
@@ -12,7 +13,6 @@ enum MoveLineDirection {
   ZNegative,
 }
 
-const nextPosition: Vec3 = new Vec3();
 const turnVec3: Vec3 = new Vec3();
 const nextTurnVec3: Vec3 = new Vec3();
 const turnQuat: Quat = new Quat();
@@ -40,6 +40,9 @@ export class Car extends Component {
   private speed: number = 0;
 
   private cameraPosition: Vec3 = new Vec3();
+
+  // 临时
+  private nextPosition: Vec3 = new Vec3();
 
   @property({
     type: Node,
@@ -106,12 +109,16 @@ export class Car extends Component {
       const nextRoadPoint = roadPoint.nextRoadPoint;
       if (nextRoadPoint.worldPosition.x > roadPoint.worldPosition.x) {
         this.currentMoveLineDirection = MoveLineDirection.XPositive;
+        this.node.setWorldRotationFromEuler(0, 270, 0);
       } else if (nextRoadPoint.worldPosition.x < roadPoint.worldPosition.x) {
         this.currentMoveLineDirection = MoveLineDirection.XNegative;
+        this.node.setWorldRotationFromEuler(0, 90, 0);
       } else if (nextRoadPoint.worldPosition.z > roadPoint.worldPosition.z) {
         this.currentMoveLineDirection = MoveLineDirection.ZPositive;
+        this.node.setWorldRotationFromEuler(0, 180, 0);
       } else if (nextRoadPoint.worldPosition.z < roadPoint.worldPosition.z) {
         this.currentMoveLineDirection = MoveLineDirection.ZNegative;
+        this.node.setWorldRotationFromEuler(0, 0, 0);
       }
     }
     // 2. 如果小车下一个节点是在转弯，则在这里初始化转弯大小
@@ -137,7 +144,7 @@ export class Car extends Component {
     if (roadPoint.type == RoadPointType.Greeting || roadPoint.type == RoadPointType.Goodbye) {
       this.waitingPassenger = true;
       this.speed = 0;
-      if (roadPoint.type == RoadPointType.Goodbye) {
+      if (this.isMainCar && roadPoint.type === RoadPointType.Goodbye) {
         // 送用户到终点之后，播放金币特效和金币音效
         AudioManager.inst.playOneShot(AudioName.GetMoney);
         AudioManager.inst.playOneShot(AudioName.InCar);
@@ -145,6 +152,12 @@ export class Car extends Component {
       }
       EventHandler.on(CustomEventType.PassengerMoveEnd, this.onPassengerMoveEnd, this);
       EventHandler.emit(CustomEventType.PassengerMoveStart, roadPoint);
+    }
+
+    // 4. 判断是否到达终点，如果到了，则销毁自身
+    if (!roadPoint.nextRoadPoint && !this.isMainCar) {
+      this.carStop();
+      PoolManager.returnNode(this.node);
     }
   }
 
@@ -161,24 +174,25 @@ export class Car extends Component {
     const delta = dt * this.speed;
     // 2. 获取当前的坐标
     const { x, y, z } = this.node.worldPosition;
+    this.nextPosition = this.node.worldPosition.clone();
     // 3. 计算方向，可能有的是x轴移动，也可能是z轴移动
     const nextX = this.currentRoadPoint.nextStation.worldPosition.x;
     const nextZ = this.currentRoadPoint.nextStation.worldPosition.z;
 
     if (nextX != x) {
       if (nextX > x) {
-        nextPosition.x = Math.min(x + delta, nextX);
+        this.nextPosition.x = Math.min(x + delta, nextX);
       } else {
-        nextPosition.x = Math.max(x - delta, nextX);
+        this.nextPosition.x = Math.max(x - delta, nextX);
       }
     } else if (nextZ != z) {
       if (nextZ > z) {
-        nextPosition.z = Math.min(z + delta, nextZ);
+        this.nextPosition.z = Math.min(z + delta, nextZ);
       } else {
-        nextPosition.z = Math.max(z - delta, nextZ);
+        this.nextPosition.z = Math.max(z - delta, nextZ);
       }
     }
-    this.node.setWorldPosition(nextPosition);
+    this.node.setWorldPosition(this.nextPosition);
   }
 
   /**
@@ -202,10 +216,10 @@ export class Car extends Component {
     }
 
     // 2.4 旋转向量
-    Vec3.rotateY(nextPosition, this.node.worldPosition, this.turnCenterPoint, rotateRadian);
+    Vec3.rotateY(this.nextPosition, this.node.worldPosition, this.turnCenterPoint, rotateRadian);
 
     // 2.5 计算位置
-    this.node.setWorldPosition(nextPosition);
+    this.node.setWorldPosition(this.nextPosition);
 
     // 3. 计算朝向
     // 3.1 用欧拉角实现
@@ -233,22 +247,27 @@ export class Car extends Component {
   }
 
   // 小车运行的处理函数
-  private carRunning() {
+  public carRunning() {
     this.isRunning = true;
     this.accelerateSpeed = this.maxAcceleratedSpeed;
+    if (!this.isMainCar) {
+      return; // 非主角车，不播放音效
+    }
     AudioManager.inst.playOneShot(AudioName.Start);
   }
 
   // 停止小车的处理函数
-  private carStop() {
+  public carStop() {
     this.accelerateSpeed = -this.maxAcceleratedSpeed;
-    AudioManager.inst.playOneShot(AudioName.Stop);
+    if (this.speed > 0 && this.isMainCar) {
+      AudioManager.inst.playOneShot(AudioName.Stop);
+    }
   }
 
   // 更新小车速度的函数
   private updateSpeed(deltaTime: number) {
     this.speed += this.accelerateSpeed * deltaTime;
-    console.log(this.speed, this.accelerateSpeed, deltaTime);
+    // console.log(this.speed, this.accelerateSpeed, deltaTime);
     if (this.speed > this.maxSpeed) {
       this.speed = this.maxSpeed;
     }
@@ -261,6 +280,10 @@ export class Car extends Component {
     this.isMainCar = isMainCar;
   }
 
+  /**
+   * 乘客移动结束的处理函数
+   * @param roadPoint 乘客上车点/下车点
+   */
   private onPassengerMoveEnd(roadPoint: RoadPoint) {
     // 1. 播放金币特效
     this.coinEffect?.getComponent(ParticleSystemComponent)?.stop();
@@ -273,6 +296,9 @@ export class Car extends Component {
     EventHandler.off(CustomEventType.PassengerMoveEnd, this.onPassengerMoveEnd, this);
   }
 
+  /**
+   * 展示特效，当前只有尾气特效
+   */
   private showEffect() {
     if (this.gasEffect) {
       if (this.speed > 0) {
@@ -281,5 +307,17 @@ export class Car extends Component {
         ParticleUtils.stop(this.gasEffect);
       }
     }
+  }
+
+  public setSpeed(speed: number) {
+    this.speed = speed;
+  }
+
+  public setMaxSpeed(maxSpeed: number) {
+    this.maxSpeed = maxSpeed;
+  }
+
+  public getCurrentRoadPoint() {
+    return this.currentRoadPoint;
   }
 }

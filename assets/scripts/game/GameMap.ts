@@ -9,6 +9,12 @@ export class GameMap extends Component {
   })
   public startNode: Node = null;
 
+  @property({
+    type: Node,
+    displayName: "AI小车起始点",
+  })
+  public AIStartNodes: Node[] = [];
+
   start() {}
 
   update(deltaTime: number) {}

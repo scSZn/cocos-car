@@ -3,7 +3,7 @@ import { MapManager } from "./MapManager";
 import { CarManager } from "./CarManager";
 import { ResourceUtil } from "../data/ResourceUtil";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
-import { AudioManager, AudioName } from "./AudioManager";
+import { AudioManager, AudioName } from "../data/AudioManager";
 
 const { ccclass, property } = _decorator;
 

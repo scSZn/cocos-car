@@ -1,16 +1,15 @@
 import { _decorator, Component, instantiate, Node, Prefab } from "cc";
-import { ResourceUtil } from "../data/ResourceUtil";
+import { ResourcePrefix, ResourceUtil } from "../data/ResourceUtil";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
 import { GameMap } from "./GameMap";
 import { Car } from "./Car";
 import { RoadPoint } from "./RoadPoint";
+import { PoolManager } from "../data/PoolManager";
 const { ccclass, property } = _decorator;
 
 @ccclass("CarManager")
 export class CarManager extends Component {
   private currentCarNode: Node = null; // 当前车辆节点
-
-  private carPool: Map<string, Node> = new Map(); // 车辆池子
 
   @property({
     type: Node,
@@ -18,31 +17,56 @@ export class CarManager extends Component {
   })
   private caremaNode: Node; // 相机节点
 
-  public initMainCar(carStr: string) {
-    // 1. 判断当前车辆资源是否加载完成
-    const carNode = this.carPool.get(carStr);
-    if (!carNode) {
-      // 2.1 车辆资源还未加载，需要加载车辆资源
-      ResourceUtil.loadResource<Prefab>(carStr, (err, carPrefab: Prefab) => {
-        if (err) {
-          console.error("加载车辆资源失败");
-          return;
-        }
-        const carNode = instantiate(carPrefab);
-        this.carPool.set(carStr, carNode);
-        // 3. 加载完成后，挂载到当前车辆节点
-        this.mountCurrentCar(carNode);
-      });
-      return;
-    }
+  @property({
+    type: Prefab,
+    displayName: "AI车辆预制体",
+  })
+  private AICarPrefabs: Prefab[] = []; // AI车辆预制体
 
-    // 2.2 车辆资源已经加载，直接挂载到当前车辆
-    this.mountCurrentCar(carNode);
+  /**
+   * 初始化玩家小车
+   * @param carStr 玩家小车
+   */
+  public initMainCar(carStr: string) {
+    if (this.currentCarNode) {
+      PoolManager.returnNode(this.currentCarNode);
+    }
+    // 2.1 车辆资源还未加载，需要加载车辆资源
+    ResourceUtil.loadResource<Prefab>(ResourcePrefix.PrefabTaxi + carStr, (err, carPrefab: Prefab) => {
+      if (err) {
+        console.error("加载车辆资源失败");
+        return;
+      }
+      const carNode = PoolManager.getNode(carPrefab);
+      this.currentCarNode = carNode;
+      // 3. 加载完成后，挂载到当前车辆节点
+      this.mountCurrentCar(carNode);
+    });
+  }
+
+  /**
+   * 初始化AI车辆
+   * @param aiStartNodes AI车辆起始节点
+   */
+  public initAICars(aiStartNodes: Node[]) {
+    aiStartNodes.forEach((AIStartNode) => {
+      this.initAICar(AIStartNode);
+    });
+  }
+
+  /**
+   * 初始化AI卡车
+   * @param AIStartNode AI卡车起始节点
+   */
+  private initAICar(AIStartNode: Node) {
+    const carPrefab = this.AICarPrefabs[Math.floor(Math.random() * this.AICarPrefabs.length)];
+    AIStartNode.getComponent(RoadPoint)?.startSchedule(carPrefab);
   }
 
   start() {}
 
-  update(deltaTime: number) {}
+  update(deltaTime: number) {
+  }
 
   /**
    * 挂载当前车辆节点
@@ -91,5 +115,9 @@ export class CarManager extends Component {
     this.currentCarNode = carNode;
     // 4. 取消游戏准备完毕的事件监听
     EventHandler.off(CustomEventType.GameReady, this.gameReady, this);
+
+    // 5. 初始化车辆
+    const aiStartNodes = gameMapNode.getComponent(GameMap)?.AIStartNodes;
+    this.initAICars(aiStartNodes);
   }
 }

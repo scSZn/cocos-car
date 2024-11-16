@@ -44,10 +44,13 @@
     "_components": [
       {
         "__id__": 37
+      },
+      {
+        "__id__": 39
       }
     ],
     "_prefab": {
-      "__id__": 39
+      "__id__": 41
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -955,6 +958,28 @@
     "fileId": "b15a9xrMlbCJkFXw/qIhsM"
   },
   {
+    "__type__": "2cb51sfNY9NppTLZQv+HdSK",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 40
+    },
+    "gasEffect": null,
+    "coinEffect": null,
+    "maxAcceleratedSpeed": 0,
+    "maxSpeed": 2,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "42/SIFOZBApZ/YPmb+5jaK"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -962,6 +987,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "8bJUH16t5cCZ1lr14XsK/z"
+    "fileId": "8bJUH16t5cCZ1lr14XsK/z",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

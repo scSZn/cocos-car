@@ -1,6 +1,11 @@
 import { _decorator, AssetManager, assetManager, Component, EventHandler, Node } from "cc";
 const { ccclass, property } = _decorator;
 
+export enum ResourcePrefix {
+  PrefabMap = "prefab/map/map",
+  PrefabTaxi = "prefab/taxi/taxi",
+}
+
 @ccclass("ResourceUtil")
 export class ResourceUtil extends Component {
   private static resource: AssetManager.Bundle = null;
@@ -31,8 +36,6 @@ export class ResourceUtil extends Component {
       });
       return;
     }
-    console.log(this.resource);
-    console.log(!this.resource);
     this.resource.load(path, (err, asset) => {
       if (err) {
         console.error("资源加载失败", path, err);

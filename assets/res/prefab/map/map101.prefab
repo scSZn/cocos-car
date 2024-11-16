@@ -2607,7 +2607,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": 0.64
+      "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
@@ -2653,7 +2653,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -2853,7 +2852,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3053,7 +3051,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3253,7 +3250,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3453,7 +3449,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3528,7 +3523,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3601,7 +3595,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -3795,9 +3788,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.11111111111111112,
-      "y": 0.1111111111111111,
-      "z": 0.11111111111111112
+      "x": 1,
+      "y": 1,
+      "z": 1
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -3827,13 +3820,9 @@
     },
     "moveType": 0,
     "clockwise": false,
-    "interval": 1,
-    "delayTime": 0.5,
-    "speed": 5,
-    "carPrefab": {
-      "__uuid__": "c9b7108b-902e-4ac3-85a6-162e7b6fb181",
-      "__expectedType__": "cc.Prefab"
-    },
+    "interval": 3,
+    "delayTime": 1,
+    "speed": 10,
     "_id": ""
   },
   {
@@ -3873,9 +3862,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.11111111111111112,
-      "y": 0.1111111111111111,
-      "z": 0.11111111111111112
+      "x": 1,
+      "y": 1,
+      "z": 1
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -3906,7 +3895,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -4035,9 +4023,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.11111111111111112,
-      "y": 0.1111111111111111,
-      "z": 0.11111111111111112
+      "x": 1,
+      "y": 1,
+      "z": 1
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -4068,12 +4056,8 @@
     "moveType": 0,
     "clockwise": false,
     "interval": 1,
-    "delayTime": 0.5,
-    "speed": 0.1,
-    "carPrefab": {
-      "__uuid__": "76225d4f-f642-4a23-8465-0542380b8b5f",
-      "__expectedType__": "cc.Prefab"
-    },
+    "delayTime": 1,
+    "speed": 10,
     "_id": ""
   },
   {
@@ -4113,9 +4097,9 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 0.11111111111111112,
-      "y": 0.1111111111111111,
-      "z": 0.11111111111111112
+      "x": 1,
+      "y": 1,
+      "z": 1
     },
     "_mobility": 0,
     "_layer": 1073741824,
@@ -4146,7 +4130,6 @@
     "interval": 0,
     "delayTime": 0,
     "speed": 0,
-    "carPrefab": null,
     "_id": ""
   },
   {
@@ -4220,6 +4203,14 @@
     "startNode": {
       "__id__": 162
     },
+    "AIStartNodes": [
+      {
+        "__id__": 208
+      },
+      {
+        "__id__": 218
+      }
+    ],
     "_id": ""
   },
   {

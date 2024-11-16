@@ -1,4 +1,6 @@
-import { _decorator, Component, Enum, Node, Prefab, Vec3 } from "cc";
+import { _decorator, Component, Enum, macro, Node, Prefab, Vec3 } from "cc";
+import { PoolManager } from "../data/PoolManager";
+import { Car } from "./Car";
 const { ccclass, property } = _decorator;
 
 export enum RoadPointType {
@@ -78,15 +80,6 @@ export class RoadPoint extends Component {
   })
   public clockwise: boolean = false;
 
-  // @property({
-  //   type: Vec3,
-  //   displayName: "转弯时候的中心点位置",
-  //   visible: function (this: RoadPoint) {
-  //     return this.moveType === MoveType.Turn;
-  //   },
-  // })
-  // public centerPoint: Vec3 = new Vec3();
-
   @property({
     type: Number,
     displayName: "产生的间隔时间",
@@ -114,18 +107,11 @@ export class RoadPoint extends Component {
   })
   public speed: number = 0;
 
-  @property({
-    type: Prefab,
-    displayName: "车类型",
-    visible: function (this: RoadPoint) {
-      return this.type === RoadPointType.AIStart;
-    },
-  })
-  public carPrefab: Prefab = null;
-
   public worldPosition: Vec3 = new Vec3();
 
   public nextRoadPoint: RoadPoint = null;
+
+  private currentTrunkPrefab: Prefab = null;
 
   protected onLoad(): void {
     this.worldPosition = this.node.getWorldPosition();
@@ -134,7 +120,35 @@ export class RoadPoint extends Component {
     }
   }
 
+  protected onDisable(): void {
+    this.unschedule(this.produceTrunk);
+  }
+
   start() {}
 
   update(deltaTime: number) {}
+
+  /**
+   * 开始产生卡车
+   * @param carPrefab 车辆预制体
+   */
+  public startSchedule(carPrefab: Prefab) {
+    if (this.type !== RoadPointType.AIStart) {
+      return;
+    }
+    this.currentTrunkPrefab = carPrefab;
+    this.schedule(this.produceTrunk, this.interval, macro.REPEAT_FOREVER, this.delayTime);
+  }
+
+  // 产生卡车
+  private produceTrunk(): void {
+    console.log("产生卡车");
+    console.log(new Date());
+    const carNode = PoolManager.getNode(this.currentTrunkPrefab, this.node);
+    carNode.setWorldPosition(this.worldPosition);
+    const carComponent = carNode.getComponent(Car);
+    carComponent.setSpeed(this.speed);
+    carComponent.setRoadPoint(this);
+    carComponent.carRunning();
+  }
 }
