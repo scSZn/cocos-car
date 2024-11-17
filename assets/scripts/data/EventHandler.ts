@@ -16,6 +16,7 @@ export enum CustomEventType {
   MapLoaded = "MapLoaded",
   CarLoaded = "CarLoaded",
   GameReady = "GameReady",
+  GameOver = "GameOver",
 
   PassengerMoveStart = "PassengerMoveStart",
   PassengerMoveEnd = "PassengerMoveEnd",

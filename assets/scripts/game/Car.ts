@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, ParticleSystemComponent, ParticleUtils, quat, Quat, Vec3 } from "cc";
+import { _decorator, BoxCollider, Component, director, ICollisionEvent, Node, ParticleSystemComponent, ParticleUtils, quat, Quat, RigidBody, Vec3 } from "cc";
 import { MoveType, RoadPoint, RoadPointType } from "./RoadPoint";
 import { CustomEventType, EventHandler } from "../data/EventHandler";
 import { AudioManager, AudioName } from "../data/AudioManager";
@@ -39,10 +39,11 @@ export class Car extends Component {
 
   private speed: number = 0;
 
-  private cameraPosition: Vec3 = new Vec3();
-
   // 临时
   private nextPosition: Vec3 = new Vec3();
+
+  // 摄像机节点
+  private cameraNode: Node = null;
 
   @property({
     type: Node,
@@ -78,7 +79,13 @@ export class Car extends Component {
     EventHandler.off(CustomEventType.CarStop, this.carStop, this);
   }
 
-  start() {}
+  start() {
+    // this.getComponent(RigidBody)?.setAngularVelocity(new Vec3(0, 10, 0));
+    if (this.isMainCar) {
+      this.getComponent(BoxCollider)?.on("onCollisionEnter", this.onCollisionEnter, this);
+    }
+    EventHandler.on(CustomEventType.GameOver, this.onGameover, this);
+  }
 
   update(deltaTime: number) {
     this.showEffect();
@@ -309,6 +316,35 @@ export class Car extends Component {
     }
   }
 
+  /**
+   * 小车相撞的处理函数
+   * @param event 相撞的事件
+   */
+  private onCollisionEnter(event: ICollisionEvent) {
+    // 1. 把摄像头纠正
+    if (this.cameraNode) {
+      const originalWorldPosition = this.cameraNode.worldPosition;
+      this.cameraNode.setParent(director.getScene());
+      this.cameraNode.setWorldPosition(originalWorldPosition);
+    }
+    // 2. 发送游戏结束事件
+    EventHandler.emit(CustomEventType.GameOver);
+
+    // 3. 播放音效
+    if (this.isMainCar) {
+      AudioManager.inst.playOneShot(AudioName.Crash); // 播放音效
+    }
+  }
+
+  /**
+   * 游戏结束的处理函数
+   */
+  private onGameover() {
+    this.speed = 0;
+    EventHandler.off(CustomEventType.CarRunning, this.carRunning, this);
+    EventHandler.off(CustomEventType.CarStop, this.carStop, this);
+  }
+
   public setSpeed(speed: number) {
     this.speed = speed;
   }
@@ -319,5 +355,10 @@ export class Car extends Component {
 
   public getCurrentRoadPoint() {
     return this.currentRoadPoint;
+  }
+
+  // 设置摄像机节点
+  public setCameraNode(cameraNode: Node) {
+    this.cameraNode = cameraNode;
   }
 }

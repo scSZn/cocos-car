@@ -5,5 +5,28 @@
       "width": 720,
       "height": 960
     }
-  }
+  },
+  "physics": {
+    "collisionGroups": [
+      {
+        "index": 1,
+        "name": "GROUP"
+      },
+      {
+        "index": 2,
+        "name": "TAXI"
+      },
+      {
+        "index": 3,
+        "name": "TRUNK"
+      }
+    ],
+    "collisionMatrix": {
+      "0": 0,
+      "1": 12,
+      "2": 10,
+      "3": 6
+    }
+  },
+  "custom_joint_texture_layouts": []
 }

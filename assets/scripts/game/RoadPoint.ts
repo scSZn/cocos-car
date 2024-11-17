@@ -140,10 +140,13 @@ export class RoadPoint extends Component {
     this.schedule(this.produceTrunk, this.interval, macro.REPEAT_FOREVER, this.delayTime);
   }
 
+  // 停止产生卡车
+  public stopSchedule() {
+    this.unschedule(this.produceTrunk);
+  }
+
   // 产生卡车
   private produceTrunk(): void {
-    console.log("产生卡车");
-    console.log(new Date());
     const carNode = PoolManager.getNode(this.currentTrunkPrefab, this.node);
     carNode.setWorldPosition(this.worldPosition);
     const carComponent = carNode.getComponent(Car);

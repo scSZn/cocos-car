@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, SystemEvent } from "cc";
+import { _decorator, Component, director, Node, PhysicsSystem, Prefab, SystemEvent } from "cc";
 import { MapManager } from "./MapManager";
 import { CarManager } from "./CarManager";
 import { ResourceUtil } from "../data/ResourceUtil";
@@ -40,6 +40,7 @@ export class GameCtrl extends Component {
 
   protected onLoad(): void {
     ResourceUtil.initResource(null);
+    PhysicsSystem.instance.enable = true;
 
     // 注册监听事件
     this.node.on(SystemEvent.EventType.TOUCH_START, this.setCarRunning, this);

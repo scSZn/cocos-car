@@ -23,6 +23,8 @@ export class CarManager extends Component {
   })
   private AICarPrefabs: Prefab[] = []; // AI车辆预制体
 
+  private aiStartNodes: Node[] = []; // AI车辆起始节点
+
   /**
    * 初始化玩家小车
    * @param carStr 玩家小车
@@ -63,10 +65,12 @@ export class CarManager extends Component {
     AIStartNode.getComponent(RoadPoint)?.startSchedule(carPrefab);
   }
 
-  start() {}
-
-  update(deltaTime: number) {
+  start() {
+    // 注册游戏结束事件
+    EventHandler.on(CustomEventType.GameOver, this.onGameover, this);
   }
+
+  update(deltaTime: number) {}
 
   /**
    * 挂载当前车辆节点
@@ -109,6 +113,7 @@ export class CarManager extends Component {
     this.caremaNode.setWorldPosition(originalCameraWorldPosition);
     carNode.setWorldPosition(startNode.worldPosition);
     carNode.getComponent(Car)?.setRoadPoint(startNode.getComponent(RoadPoint));
+    carNode.getComponent(Car)?.setCameraNode(this.caremaNode);
 
     // 3. 显示当前车辆节点
     carNode.active = true;
@@ -118,6 +123,15 @@ export class CarManager extends Component {
 
     // 5. 初始化车辆
     const aiStartNodes = gameMapNode.getComponent(GameMap)?.AIStartNodes;
+    this.aiStartNodes = aiStartNodes;
     this.initAICars(aiStartNodes);
+  }
+
+  // 游戏结束事件
+  private onGameover() {
+    // 1. 暂停产生AI小车
+    this.aiStartNodes.forEach((aiStartNode) => {
+      aiStartNode.getComponent(RoadPoint)?.stopSchedule();
+    });
   }
 }
